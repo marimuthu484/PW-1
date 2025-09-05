@@ -1,12 +1,14 @@
 const Doctor = require('../models/Doctor');
 const Appointment = require('../models/Appointment');
 const Patient = require('../models/Patient');
+const User = require('../models/User');
 const { USER_ROLES } = require('../config/constants');
 
 // Get doctor profile
 exports.getProfile = async (req, res) => {
   try {
-    const doctor = await Doctor.findOne({ userId: req.user._id });
+    const doctor = await Doctor.findOne({ userId: req.user._id })
+      .populate('userId', 'name email');
 
     if (!doctor) {
       return res.status(404).json({
@@ -50,7 +52,7 @@ exports.updateProfile = async (req, res) => {
       { userId: req.user._id },
       updates,
       { new: true, runValidators: true }
-    );
+    ).populate('userId', 'name email');
 
     res.json({
       success: true,
@@ -70,10 +72,17 @@ exports.getAppointments = async (req, res) => {
   try {
     const doctor = await Doctor.findOne({ userId: req.user._id });
     
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Doctor profile not found'
+      });
+    }
+    
     const { status, date } = req.query;
     const query = { doctorId: doctor._id };
 
-    if (status) {
+    if (status && status !== 'all') {
       query.status = status;
     }
 
@@ -86,6 +95,20 @@ exports.getAppointments = async (req, res) => {
     }
 
     const appointments = await Appointment.find(query)
+      .populate({
+        path: 'patientId',
+        populate: {
+          path: 'userId',
+          select: 'name email avatar'
+        }
+      })
+      .populate({
+        path: 'doctorId',
+        populate: {
+          path: 'userId',
+          select: 'name email'
+        }
+      })
       .sort({ date: 1, timeSlot: 1 });
 
     res.json({
@@ -106,6 +129,13 @@ exports.getPatients = async (req, res) => {
   try {
     const doctor = await Doctor.findOne({ userId: req.user._id });
     
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Doctor profile not found'
+      });
+    }
+
     // Get unique patient IDs from appointments
     const appointments = await Appointment.find({ 
       doctorId: doctor._id,
@@ -114,7 +144,7 @@ exports.getPatients = async (req, res) => {
 
     const patients = await Patient.find({
       _id: { $in: appointments }
-    });
+    }).populate('userId', 'name email');
 
     res.json({
       success: true,

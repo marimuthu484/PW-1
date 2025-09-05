@@ -18,9 +18,11 @@ import Dashboard from "./pages/Dashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import Consultation from "./pages/Consultation";
 import UserProfile from "./pages/UserProfile";
+import VideoCall from "./pages/VideoCall"; // ✅ Added VideoCall import
 
 // Admin pages
 import Admin from "./admin/Admin";
+
 function App() {
   return (
     <ErrorBoundary>
@@ -29,7 +31,7 @@ function App() {
         
         <main className="min-h-screen">
           <Routes>
-            {/* Public Routes */}
+            {/* ✅ Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/heart-prediction" element={<HeartPrediction />} />
             <Route path="/liver-prediction" element={<LiverPrediction />} />
@@ -37,7 +39,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
-            {/* Protected Patient Routes */}
+            {/* ✅ Protected Patient Routes */}
             <Route path="/dashboard" element={
               <ProtectedRoute role="patient">
                 <Dashboard />
@@ -53,15 +55,20 @@ function App() {
                 <UserProfile />
               </ProtectedRoute>
             } />
+            <Route path="/video-call/:consultationId" element={ // ✅ Added VideoCall Route
+              <ProtectedRoute role="patient">
+                <VideoCall />
+              </ProtectedRoute>
+            } />
             
-            {/* Protected Doctor Routes */}
+            {/* ✅ Protected Doctor Routes */}
             <Route path="/doctor-dashboard" element={
               <ProtectedRoute role="doctor">
                 <DoctorDashboard />
               </ProtectedRoute>
             } />
             
-            {/* Protected Admin Routes */}
+            {/* ✅ Protected Admin Routes */}
             <Route path="/admin" element={
               <ProtectedRoute role="admin">
                 <Admin />

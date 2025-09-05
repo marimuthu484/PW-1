@@ -6,7 +6,7 @@ module.exports = {
   },
   
   DOCTOR_STATUS: {
-    PENDING: 'pending',
+    PENDING: 'pending', 
     APPROVED: 'approved',
     REJECTED: 'rejected'
   },

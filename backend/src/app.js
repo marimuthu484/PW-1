@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const consultationRoutes=require('./routes/consultationRoutes');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -27,6 +28,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/patient', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/consultations', consultationRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Heart, Activity, FileText, Calendar, Download, Eye, Trash2, Plus } from 'lucide-react';
+import { Heart, Activity, FileText, Calendar, Download, Eye, Plus } from 'lucide-react';
 
 import { patientService } from '../services/patientService';
 import { appointmentService } from '../services/appointmentService';
 import { formatters } from '../utils/formatters';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
+
+import ConsultationNotification from '../components/patient/ConsultationNotification';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -355,6 +357,9 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* ✅ Added Consultation Notification here */}
+      <ConsultationNotification />
     </div>
   );
 };

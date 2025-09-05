@@ -17,7 +17,13 @@ const consultationSchema = new mongoose.Schema({
     type: Number // in minutes
   },
   meetingLink: {
-    type: String
+    type: String,
+    required: true
+  },
+  roomId: {
+    type: String,
+    required: true,
+    unique: true
   },
   notes: {
     type: String
