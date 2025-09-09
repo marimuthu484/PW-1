@@ -1,3 +1,4 @@
+// src/pages/DoctorDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import AppointmentManagement from '../components/doctor/AppointmentManagement';
@@ -5,7 +6,8 @@ import VideoConsultation from '../components/doctor/VideoConsultation';
 import PatientManagement from '../components/doctor/PatientManagement';
 import PrescriptionManagement from '../components/doctor/PrescriptionManagement';
 import DoctorProfile from '../components/doctor/DoctorProfile';
-import { Users, Calendar, Video, FileText, User, Bell, Settings } from 'lucide-react';
+import TimeSlotManagement from '../components/doctor/TimeSlotManagement';
+import { Users, Calendar, Video, FileText, User, Bell, Settings, Clock } from 'lucide-react';
 import { doctorService } from '../services/doctorService';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
@@ -14,16 +16,12 @@ const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState('appointments');
   const [stats, setStats] = useState({
     todayAppointments: 0,
+    pendingAppointments: 0,
     activePatients: 0,
-    pendingConsultations: 0,
     totalPrescriptions: 0
   });
   const [loading, setLoading] = useState(true);
-
-  const notifications = [
-    { id: 1, message: 'New appointment request from John Smith', time: '5 min ago', type: 'appointment' },
-    { id: 2, message: 'Video consultation starting in 15 minutes', time: '10 min ago', type: 'consultation' }
-  ];
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -31,19 +29,32 @@ const DoctorDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch appointments for today
+      // Fetch today's appointments
       const today = new Date().toISOString().split('T')[0];
       const appointmentsResponse = await doctorService.getAppointments({ date: today });
+      const allAppointmentsResponse = await doctorService.getAppointments({ status: 'pending' });
       
       // Fetch all patients
       const patientsResponse = await doctorService.getPatients();
       
       setStats({
         todayAppointments: appointmentsResponse.appointments.length,
+        pendingAppointments: allAppointmentsResponse.appointments.length,
         activePatients: patientsResponse.patients.length,
-        pendingConsultations: appointmentsResponse.appointments.filter(a => a.status === 'confirmed').length,
-        totalPrescriptions: 24 // This would come from a prescriptions endpoint
+        totalPrescriptions: 24 // This would come from prescriptions endpoint
       });
+
+      // Set notifications for pending appointments
+      if (allAppointmentsResponse.appointments.length > 0) {
+        setNotifications([
+          {
+            id: 1,
+            message: `You have ${allAppointmentsResponse.appointments.length} pending appointment requests`,
+            type: 'appointment',
+            time: 'Just now'
+          }
+        ]);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -53,14 +64,14 @@ const DoctorDashboard = () => {
 
   const statCards = [
     { label: "Today's Appointments", value: stats.todayAppointments, icon: Calendar, color: 'blue' },
+    { label: 'Pending Approvals', value: stats.pendingAppointments, icon: Clock, color: 'yellow' },
     { label: 'Active Patients', value: stats.activePatients, icon: Users, color: 'green' },
-    { label: 'Pending Consultations', value: stats.pendingConsultations, icon: Video, color: 'purple' },
-    { label: 'Prescriptions', value: stats.totalPrescriptions, icon: FileText, color: 'orange' }
+    { label: 'Prescriptions', value: stats.totalPrescriptions, icon: FileText, color: 'purple' }
   ];
 
   const tabs = [
     { id: 'appointments', label: 'Appointments', icon: Calendar },
-    { id: 'consultations', label: 'Video Consultations', icon: Video },
+    { id: 'timeslots', label: 'Time Slots', icon: Clock },
     { id: 'patients', label: 'Patients', icon: Users },
     { id: 'prescriptions', label: 'Prescriptions', icon: FileText },
     { id: 'profile', label: 'Profile', icon: User }
@@ -82,23 +93,20 @@ const DoctorDashboard = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome, Dr. {user?.name}</h1>
             <p className="text-gray-600">
-              Manage your practice efficiently with our comprehensive dashboard
+              Manage your appointments, patients, and consultations
             </p>
           </div>
           <div className="flex items-center space-x-4 mt-4 lg:mt-0">
-            <div className="relative">
-              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                <Bell className="h-6 w-6" />
-                {notifications.length > 0 && (
+            {notifications.length > 0 && (
+              <div className="relative">
+                <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                  <Bell className="h-6 w-6" />
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {notifications.length}
                   </span>
-                )}
-              </button>
-            </div>
-            <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-              <Settings className="h-6 w-6" />
-            </button>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -144,7 +152,7 @@ const DoctorDashboard = () => {
           {/* Tab Content */}
           <div className="p-6">
             {activeTab === 'appointments' && <AppointmentManagement />}
-            {activeTab === 'consultations' && <VideoConsultation />}
+            {activeTab === 'timeslots' && <TimeSlotManagement />}
             {activeTab === 'patients' && <PatientManagement />}
             {activeTab === 'prescriptions' && <PrescriptionManagement />}
             {activeTab === 'profile' && <DoctorProfile />}
@@ -162,7 +170,12 @@ const DoctorDashboard = () => {
                     <p className="text-sm text-gray-900">{n.message}</p>
                     <p className="text-xs text-gray-500">{n.time}</p>
                   </div>
-                  <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">View</button>
+                  <button 
+                    onClick={() => setActiveTab('appointments')}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    View
+                  </button>
                 </div>
               ))}
             </div>

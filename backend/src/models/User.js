@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
     enum: Object.values(USER_ROLES),
     default: USER_ROLES.PATIENT
   },
+  avatar: {
+    type: String,
+    default: ''
+  },
   isEmailVerified: {
     type: Boolean,
     default: false
@@ -52,14 +56,22 @@ const userSchema = new mongoose.Schema({
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Compare password
 userSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    return false;
+  }
 };
 
 // Generate JWT token
@@ -70,8 +82,8 @@ userSchema.methods.generateAuthToken = function() {
       email: this.email,
       role: this.role 
     },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE }
+    process.env.JWT_SECRET || 'your-jwt-secret',
+    { expiresIn: process.env.JWT_EXPIRE || '7d' }
   );
 };
 

@@ -24,5 +24,22 @@ export const doctorService = {
   async updateAppointmentStatus(appointmentId, status) {
     const response = await api.put(`/appointments/${appointmentId}/status`, { status });
     return response.data;
+  },
+
+  async getTimeSlots() {
+    const response = await api.get('/doctor/time-slots');
+    return response.data;
+  },
+
+  async updateTimeSlots(timeSlots) {
+    const response = await api.put('/doctor/time-slots', { timeSlots });
+    return response.data;
+  },
+
+  async getAvailableSlotsForDate(doctorId, date) {
+    const response = await api.get('/doctor/available-slots', { 
+      params: { doctorId, date } 
+    });
+    return response.data;
   }
 };

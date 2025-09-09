@@ -1,352 +1,50 @@
-// import React, { useState } from 'react';
-// import { Video, Calendar, Clock, User, CheckCircle } from 'lucide-react';
-
-// const Consultation = () => {
-//   const [selectedDoctor, setSelectedDoctor] = useState(null);
-//   const [selectedDate, setSelectedDate] = useState('');
-//   const [selectedTime, setSelectedTime] = useState('');
-//   const [consultationType, setConsultationType] = useState('video');
-//   const [bookingSuccess, setBookingSuccess] = useState(false);
-
-//   const doctors = [
-//     {
-//       id: 1,
-//       name: 'Dr. Sarah Johnson',
-//       specialty: 'Cardiologist',
-//       rating: 4.8,
-//       fee: 150,
-//       image:
-//         'https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-//     },
-//     {
-//       id: 2,
-//       name: 'Dr. Michael Chen',
-//       specialty: 'Hepatologist',
-//       rating: 4.9,
-//       fee: 180,
-//       image:
-//         'https://images.pexels.com/photos/6129967/pexels-photo-6129967.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-//     },
-//   ];
-
-//   const timeSlots = [
-//     '9:00 AM',
-//     '10:00 AM',
-//     '11:00 AM',
-//     '2:00 PM',
-//     '3:00 PM',
-//     '4:00 PM',
-//     '5:00 PM',
-//   ];
-
-//   // filter time slots if today
-//   const isToday = selectedDate === new Date().toISOString().split('T')[0];
-//   const validTimeSlots = isToday
-//     ? timeSlots.filter((t) => {
-//         const [time, meridiem] = t.split(' ');
-//         let [hours, minutes] = time.split(':').map(Number);
-//         if (meridiem === 'PM' && hours < 12) hours += 12;
-//         const slotDate = new Date();
-//         slotDate.setHours(hours, minutes);
-//         return slotDate > new Date();
-//       })
-//     : timeSlots;
-
-//   const handleBooking = () => {
-//     if (selectedDoctor && selectedDate && selectedTime) {
-//       setBookingSuccess(true);
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12">
-//       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-//         <div className="text-center mb-12">
-//           <div className="flex justify-center mb-4">
-//             <div className="bg-blue-100 p-4 rounded-full">
-//               <Video className="h-12 w-12 text-blue-600" />
-//             </div>
-//           </div>
-//           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-//             Book Online Consultation
-//           </h1>
-//           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-//             Schedule a video consultation with our expert doctors. Get
-//             professional medical advice from the comfort of your home.
-//           </p>
-//         </div>
-
-//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-//           {/* Booking Form */}
-//           <div className="bg-white rounded-2xl shadow-xl p-8">
-//             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-//               Schedule Your Consultation
-//             </h2>
-
-//             {/* Consultation Type */}
-//             <div className="mb-6">
-//               <label className="block text-sm font-medium text-gray-700 mb-3">
-//                 Consultation Type
-//               </label>
-//               <div className="grid grid-cols-2 gap-4">
-//                 <button
-//                   onClick={() => setConsultationType('video')}
-//                   className={`p-4 rounded-lg border-2 transition-colors ${
-//                     consultationType === 'video'
-//                       ? 'border-blue-500 bg-blue-50 text-blue-700'
-//                       : 'border-gray-200 hover:border-gray-300'
-//                   }`}
-//                 >
-//                   <Video className="h-6 w-6 mx-auto mb-2" />
-//                   <span className="block font-medium">Video Call</span>
-//                 </button>
-//                 <button
-//                   onClick={() => setConsultationType('audio')}
-//                   className={`p-4 rounded-lg border-2 transition-colors ${
-//                     consultationType === 'audio'
-//                       ? 'border-blue-500 bg-blue-50 text-blue-700'
-//                       : 'border-gray-200 hover:border-gray-300'
-//                   }`}
-//                 >
-//                   <User className="h-6 w-6 mx-auto mb-2" />
-//                   <span className="block font-medium">Audio Call</span>
-//                 </button>
-//               </div>
-//             </div>
-
-//             {/* Doctor Selection */}
-//             <div className="mb-6">
-//               <label className="block text-sm font-medium text-gray-700 mb-3">
-//                 Select Doctor
-//               </label>
-//               <div className="space-y-3">
-//                 {doctors.map((doctor) => (
-//                   <button
-//                     key={doctor.id}
-//                     onClick={() => setSelectedDoctor(doctor)}
-//                     className={`w-full p-4 rounded-lg border-2 transition-colors text-left flex items-center ${
-//                       selectedDoctor?.id === doctor.id
-//                         ? 'border-blue-500 bg-blue-50'
-//                         : 'border-gray-200 hover:border-gray-300'
-//                     }`}
-//                   >
-//                     <img
-//                       src={doctor.image}
-//                       alt={doctor.name}
-//                       className="w-12 h-12 rounded-full object-cover mr-4"
-//                     />
-//                     <div className="flex-1">
-//                       <h3 className="font-semibold text-gray-900">
-//                         {doctor.name}
-//                       </h3>
-//                       <p className="text-sm text-gray-600">
-//                         {doctor.specialty}
-//                       </p>
-//                       <p className="text-sm font-medium text-blue-600">
-//                         ${doctor.fee} consultation
-//                       </p>
-//                     </div>
-//                     {selectedDoctor?.id === doctor.id && (
-//                       <CheckCircle className="h-5 w-5 text-blue-500" />
-//                     )}
-//                   </button>
-//                 ))}
-//               </div>
-//             </div>
-
-//             {/* Date Selection */}
-//             <div className="mb-6">
-//               <label className="block text-sm font-medium text-gray-700 mb-3">
-//                 Select Date
-//               </label>
-//               <input
-//                 type="date"
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-//                 value={selectedDate}
-//                 onChange={(e) => setSelectedDate(e.target.value)}
-//                 min={new Date().toISOString().split('T')[0]}
-//               />
-//             </div>
-
-//             {/* Time Selection */}
-//             <div className="mb-6">
-//               <label className="block text-sm font-medium text-gray-700 mb-3">
-//                 Select Time
-//               </label>
-//               <div className="grid grid-cols-3 gap-2">
-//                 {validTimeSlots.map((time) => (
-//                   <button
-//                     key={time}
-//                     onClick={() => setSelectedTime(time)}
-//                     className={`p-2 rounded-lg border transition-colors text-sm ${
-//                       selectedTime === time
-//                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-//                         : 'border-gray-200 hover:border-gray-300'
-//                     }`}
-//                   >
-//                     {time}
-//                   </button>
-//                 ))}
-//               </div>
-//             </div>
-
-//             {/* Book Button */}
-//             <button
-//               onClick={handleBooking}
-//               disabled={!selectedDoctor || !selectedDate || !selectedTime}
-//               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
-//             >
-//               <Calendar className="h-5 w-5" />
-//               <span>Book Consultation</span>
-//             </button>
-
-//             {/* Booking Success */}
-//             {bookingSuccess && (
-//               <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
-//                 ✅ Consultation booked with {selectedDoctor.name} on{' '}
-//                 {new Date(selectedDate).toLocaleDateString()} at {selectedTime}.
-//                 You will receive a confirmation email shortly.
-//               </div>
-//             )}
-//           </div>
-
-//           {/* Booking Summary */}
-//           <div className="space-y-6">
-//             {selectedDoctor && (
-//               <div className="bg-white rounded-2xl shadow-xl p-8">
-//                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
-//                   Booking Summary
-//                 </h3>
-
-//                 <div className="space-y-4">
-//                   <div className="flex items-center space-x-3">
-//                     <User className="h-5 w-5 text-gray-400" />
-//                     <div>
-//                       <p className="font-medium text-gray-900">
-//                         {selectedDoctor.name}
-//                       </p>
-//                       <p className="text-sm text-gray-600">
-//                         {selectedDoctor.specialty}
-//                       </p>
-//                     </div>
-//                   </div>
-
-//                   {selectedDate && (
-//                     <div className="flex items-center space-x-3">
-//                       <Calendar className="h-5 w-5 text-gray-400" />
-//                       <p className="text-gray-900">
-//                         {new Date(selectedDate).toLocaleDateString()}
-//                       </p>
-//                     </div>
-//                   )}
-
-//                   {selectedTime && (
-//                     <div className="flex items-center space-x-3">
-//                       <Clock className="h-5 w-5 text-gray-400" />
-//                       <p className="text-gray-900">{selectedTime}</p>
-//                     </div>
-//                   )}
-
-//                   <div className="flex items-center space-x-3">
-//                     <Video className="h-5 w-5 text-gray-400" />
-//                     <p className="text-gray-900 capitalize">
-//                       {consultationType} Consultation
-//                     </p>
-//                   </div>
-
-//                   <div className="border-t pt-4">
-//                     <div className="flex justify-between items-center">
-//                       <span className="font-medium text-gray-900">
-//                         Total Fee:
-//                       </span>
-//                       <span className="text-2xl font-bold text-blue-600">
-//                         ${selectedDoctor.fee}
-//                       </span>
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-//             )}
-
-//             <div className="bg-white rounded-2xl shadow-xl p-8">
-//               <h3 className="text-xl font-semibold text-gray-900 mb-4">
-//                 What to Expect
-//               </h3>
-
-//               <div className="space-y-4">
-//                 {[
-//                   {
-//                     title: 'Professional Consultation',
-//                     desc: 'Expert medical advice from certified specialists',
-//                   },
-//                   {
-//                     title: 'Secure Platform',
-//                     desc: 'HIPAA-compliant video conferencing',
-//                   },
-//                   {
-//                     title: 'Digital Prescription',
-//                     desc: 'Receive prescriptions electronically',
-//                   },
-//                   {
-//                     title: 'Follow-up Support',
-//                     desc: 'Access to consultation notes and recommendations',
-//                   },
-//                 ].map((item, i) => (
-//                   <div key={i} className="flex items-start space-x-3">
-//                     <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-//                     <div>
-//                       <p className="font-medium text-gray-900">{item.title}</p>
-//                       <p className="text-sm text-gray-600">{item.desc}</p>
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Consultation;
-
-
-import React, { useState, useEffect } from 'react';
-import { Video, Calendar, Clock, User, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+// src/pages/Consultation.jsx
+import React, { useState, useEffect, useRef } from 'react';
+import { Video, Calendar, Clock, User, CheckCircle, AlertCircle, ArrowLeft, Upload, FileText, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { patientService } from '../services/patientService';
 import { appointmentService } from '../services/appointmentService';
+import { timeSlotService } from '../services/timeSlotService';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import moment from 'moment';
 
 const Consultation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const fileInputRef = useRef(null);
+  
   const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
-  const [selectedTime, setSelectedTime] = useState('');
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [reason, setReason] = useState('');
+  const [consultationType, setConsultationType] = useState('video');
+  const [medicalReport, setMedicalReport] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [error, setError] = useState('');
-
-  const timeSlots = [
-    '9:00 AM', '10:00 AM', '11:00 AM',
-    '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
-  ];
 
   useEffect(() => {
     fetchDoctors();
   }, []);
 
   useEffect(() => {
-    // If doctor ID passed from DoctorRecommendation page
     if (location.state?.doctorId) {
       const doctor = doctors.find(d => d._id === location.state.doctorId);
       if (doctor) setSelectedDoctor(doctor);
     }
   }, [location.state, doctors]);
+
+  useEffect(() => {
+    if (selectedDoctor && selectedDate) {
+      fetchAvailableSlots();
+    } else {
+      setAvailableSlots([]);
+      setSelectedSlot(null);
+    }
+  }, [selectedDoctor, selectedDate]);
 
   const fetchDoctors = async () => {
     try {
@@ -354,12 +52,50 @@ const Consultation = () => {
       setDoctors(response.doctors);
     } catch (error) {
       console.error('Error fetching doctors:', error);
+      setError('Failed to load doctors');
     }
   };
 
+  const fetchAvailableSlots = async () => {
+    setLoadingSlots(true);
+    setAvailableSlots([]);
+    setSelectedSlot(null);
+    
+    try {
+      const response = await timeSlotService.getAvailableSlots(
+        selectedDoctor._id,
+        selectedDate
+      );
+      setAvailableSlots(response.slots || []);
+    } catch (error) {
+      console.error('Error fetching available slots:', error);
+      setError('Failed to load available time slots');
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      setError('Please upload a PDF file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      setError('File size must be less than 10MB');
+      return;
+    }
+
+    setMedicalReport(file);
+    setError('');
+  };
+
   const handleBooking = async () => {
-    if (!selectedDoctor || !selectedDate || !selectedTime || !reason) {
-      setError('Please fill in all fields');
+    if (!selectedDoctor || !selectedDate || !selectedSlot || !reason) {
+      setError('Please fill in all required fields');
       return;
     }
 
@@ -367,39 +103,32 @@ const Consultation = () => {
     setError('');
 
     try {
-      const appointmentData = {
-        doctorId: selectedDoctor._id,
-        date: selectedDate,
-        timeSlot: selectedTime,
-        reason: reason
-      };
-
-      await appointmentService.createAppointment(appointmentData);
-      setBookingSuccess(true);
+      const formData = new FormData();
+      formData.append('doctorId', selectedDoctor._id);
+      formData.append('timeSlotId', selectedSlot._id);
+      formData.append('reason', reason);
+      formData.append('consultationType', consultationType);
       
-      // Reset form
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 3000);
+      if (medicalReport) {
+        formData.append('medicalReport', medicalReport);
+      }
+
+      const response = await appointmentService.createAppointment(formData);
+      
+      if (response.success) {
+        setBookingSuccess(true);
+        
+        // Redirect after 3 seconds
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 3000);
+      }
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to book appointment');
     } finally {
       setLoading(false);
     }
   };
-
-  // Filter time slots if today
-  const isToday = selectedDate === new Date().toISOString().split('T')[0];
-  const validTimeSlots = isToday
-    ? timeSlots.filter((t) => {
-        const [time, meridiem] = t.split(' ');
-        let [hours, minutes] = time.split(':').map(Number);
-        if (meridiem === 'PM' && hours < 12) hours += 12;
-        const slotDate = new Date();
-        slotDate.setHours(hours, minutes);
-        return slotDate > new Date();
-      })
-    : timeSlots;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12">
@@ -422,14 +151,14 @@ const Consultation = () => {
             Book Online Consultation
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Schedule a video consultation with our expert doctors
+            Schedule an appointment with our expert doctors
           </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-700">
-              <AlertCircle className="h-5 w-5 mr-2" />
+              <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
               {error}
             </div>
           )}
@@ -438,21 +167,24 @@ const Consultation = () => {
             <div className="text-center py-12">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Appointment Booked Successfully!
+                Appointment Request Sent!
               </h2>
-              <p className="text-gray-600">
-                You will receive a confirmation email shortly.
+              <p className="text-gray-600 mb-2">
+                Your appointment request has been sent to the doctor for approval.
               </p>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-gray-500 text-sm">
+                You will receive an email notification once the doctor responds.
+              </p>
+              <p className="text-sm text-gray-500 mt-4">
                 Redirecting to dashboard...
               </p>
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Doctor Selection */}
+              {/* Step 1: Select Doctor */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Select Doctor
+                  Step 1: Select Doctor
                 </label>
                 <div className="space-y-3 max-h-60 overflow-y-auto">
                   {doctors.map((doctor) => (
@@ -472,85 +204,181 @@ const Consultation = () => {
                       />
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">
-                          {doctor.userId?.name}
+                          Dr. {doctor.userId?.name}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          {doctor.specialization} • {doctor.experience} years
+                          {doctor.specialization} • {doctor.experience} years experience
                         </p>
                         <p className="text-sm font-medium text-blue-600">
-                          ${doctor.consultationFee} consultation
+                          ${doctor.consultationFee} per consultation
                         </p>
                       </div>
                       {selectedDoctor?._id === doctor._id && (
-                        <CheckCircle className="h-5 w-5 text-blue-500" />
+                        <CheckCircle className="h-5 w-5 text-blue-500 flex-shrink-0" />
                       )}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Date Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Select Date
-                </label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                />
-              </div>
-
-              {/* Time Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Select Time
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {validTimeSlots.map((time) => (
-                    <button
-                      key={time}
-                      onClick={() => setSelectedTime(time)}
-                      className={`p-2 rounded-lg border transition-colors text-sm ${
-                        selectedTime === time
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      {time}
-                    </button>
-                  ))}
+              {/* Step 2: Select Date */}
+              {selectedDoctor && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Step 2: Select Date
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    min={moment().format('YYYY-MM-DD')}
+                    max={moment().add(30, 'days').format('YYYY-MM-DD')}
+                  />
                 </div>
-              </div>
+              )}
 
-              {/* Reason for Consultation */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Reason for Consultation
-                </label>
-                <textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Please describe your symptoms or reason for consultation..."
-                />
-              </div>
+              {/* Step 3: Select Time Slot */}
+              {selectedDate && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Step 3: Select Time Slot
+                  </label>
+                  {loadingSlots ? (
+                    <div className="flex justify-center py-4">
+                      <LoadingSpinner />
+                    </div>
+                  ) : availableSlots.length === 0 ? (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg">
+                      <Clock className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500">No available slots for this date.</p>
+                      <p className="text-gray-400 text-sm">Please select another date.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {availableSlots.map((slot) => (
+                        <button
+                          key={slot._id}
+                          onClick={() => setSelectedSlot(slot)}
+                          className={`p-3 rounded-lg border-2 transition-colors text-sm ${
+                            selectedSlot?._id === slot._id
+                              ? 'border-blue-500 bg-blue-50 text-blue-700'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          {slot.startTime} - {slot.endTime}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
-              {/* Book Button */}
+              {/* Step 4: Consultation Details */}
+              {selectedSlot && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Step 4: Consultation Type
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { value: 'video', label: 'Video Call' },
+                        { value: 'audio', label: 'Audio Call' },
+                        { value: 'chat', label: 'Chat Only' }
+                      ].map((type) => (
+                        <button
+                          key={type.value}
+                          onClick={() => setConsultationType(type.value)}
+                          className={`p-3 rounded-lg border-2 transition-colors text-sm ${
+                            consultationType === type.value
+                              ? 'border-blue-500 bg-blue-50 text-blue-700'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          {type.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Step 5: Reason for Consultation
+                    </label>
+                    <textarea
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      rows="3"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Please describe your symptoms or reason for consultation..."
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Medical Report (Optional)
+                    </label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                      />
+                      
+                      {medicalReport ? (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-8 w-8 text-blue-600" />
+                            <div>
+                              <p className="font-medium text-gray-900">{medicalReport.name}</p>
+                              <p className="text-sm text-gray-500">
+                                {(medicalReport.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setMedicalReport(null);
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                              }
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full flex flex-col items-center justify-center py-4 text-gray-500 hover:text-gray-700"
+                        >
+                          <Upload className="h-8 w-8 mb-2" />
+                          <span className="text-sm">Upload Medical Report (PDF)</span>
+                          <span className="text-xs text-gray-400 mt-1">Max size: 10MB</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Submit Button */}
               <button
                 onClick={handleBooking}
-                disabled={loading || !selectedDoctor || !selectedDate || !selectedTime || !reason}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
+                disabled={loading || !selectedDoctor || !selectedDate || !selectedSlot || !reason}
+                                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
               >
                 {loading ? (
                   <LoadingSpinner size="small" color="white" />
                 ) : (
                   <>
                     <Calendar className="h-5 w-5" />
-                    <span>Book Consultation</span>
+                    <span>Book Appointment</span>
                   </>
                 )}
               </button>
@@ -559,7 +387,7 @@ const Consultation = () => {
         </div>
 
         {/* Booking Summary */}
-        {selectedDoctor && !bookingSuccess && (
+        {selectedDoctor && selectedSlot && !bookingSuccess && (
           <div className="mt-6 bg-white rounded-xl shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Booking Summary
@@ -567,22 +395,28 @@ const Consultation = () => {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Doctor:</span>
-                <span className="font-medium">{selectedDoctor.userId?.name}</span>
+                <span className="font-medium">Dr. {selectedDoctor.userId?.name}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Specialization:</span>
                 <span className="font-medium">{selectedDoctor.specialization}</span>
               </div>
-              {selectedDate && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Date:</span>
+                <span className="font-medium">{moment(selectedDate).format('MMMM D, YYYY')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Time:</span>
+                <span className="font-medium">{selectedSlot.startTime} - {selectedSlot.endTime}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Consultation Type:</span>
+                <span className="font-medium capitalize">{consultationType}</span>
+              </div>
+              {medicalReport && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Date:</span>
-                  <span className="font-medium">{new Date(selectedDate).toDateString()}</span>
-                </div>
-              )}
-              {selectedTime && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Time:</span>
-                  <span className="font-medium">{selectedTime}</span>
+                  <span className="text-gray-600">Medical Report:</span>
+                  <span className="font-medium">Attached</span>
                 </div>
               )}
               <div className="flex justify-between pt-3 border-t">
@@ -598,4 +432,3 @@ const Consultation = () => {
 };
 
 export default Consultation;
-

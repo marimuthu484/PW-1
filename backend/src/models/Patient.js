@@ -44,6 +44,17 @@ const patientSchema = new mongoose.Schema({
     dosage: String,
     frequency: String,
     startDate: Date
+  }],
+  height: Number,
+  weight: Number,
+  medicalReports: [{
+    fileName: String,
+    fileUrl: String,
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    },
+    description: String
   }]
 }, {
   timestamps: true
@@ -53,7 +64,7 @@ const patientSchema = new mongoose.Schema({
 patientSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'userId',
-    select: 'name email'
+    select: 'name email avatar'
   });
   next();
 });

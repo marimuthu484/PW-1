@@ -4,6 +4,7 @@ const Doctor = require('../models/Doctor');
 const Patient = require('../models/Patient');
 const Notification = require('../models/Notification');
 const notificationService = require('../services/notificationService');
+const emailService = require('../services/emailService');
 
 // Start consultation
 exports.startConsultation = async (req, res) => {
@@ -54,7 +55,7 @@ exports.startConsultation = async (req, res) => {
         success: true,
         message: 'Consultation already started',
         consultation,
-        meetingLink: `${process.env.CLIENT_URL}/video-call/${consultation._id}`
+        meetingLink: `${process.env.CLIENT_URL}/video-call/${appointmentId}`
       });
     }
 
@@ -66,26 +67,45 @@ exports.startConsultation = async (req, res) => {
       roomId: `room-${appointmentId}-${Date.now()}`
     });
 
-    // Update appointment status to in-progress
+    // Update appointment
     appointment.status = 'in-progress';
+    appointment.meetingLink = consultation.meetingLink;
     await appointment.save();
 
     // Create notification for patient
-    await notificationService.createNotification(
-      appointment.patientId.userId._id,
-      'consultation',
-      'Video Consultation Started',
-      `Dr. ${appointment.doctorId.userId.name} has started the video consultation. Click to join.`,
-      {
-        consultationId: consultation._id,
-        appointmentId: appointment._id,
-        meetingLink: consultation.meetingLink
-      }
-    );
+    try {
+      await notificationService.createNotification(
+        appointment.patientId.userId._id,
+        'consultation',
+        'Video Consultation Started',
+        `Dr. ${appointment.doctorId.userId.name} has started the video consultation. Click to join.`,
+        {
+          consultationId: consultation._id,
+          appointmentId: appointment._id,
+          meetingLink: consultation.meetingLink
+        }
+      );
+    } catch (notificationError) {
+      console.log('Notification error:', notificationError);
+    }
+
+    // Send email to patient
+    try {
+      await emailService.sendConsultationStartedEmail(
+        appointment.patientId.userId.email,
+        {
+          patientName: appointment.patientId.userId.name,
+          doctorName: appointment.doctorId.userId.name,
+          meetingLink: consultation.meetingLink
+        }
+      );
+    } catch (emailError) {
+      console.log('Email error:', emailError);
+    }
 
     res.status(201).json({
       success: true,
-      message: 'Consultation started',
+      message: 'Consultation started and patient notified',
       consultation,
       meetingLink: consultation.meetingLink
     });
@@ -116,6 +136,14 @@ exports.getActiveConsultation = async (req, res) => {
       status: 'in-progress'
     });
 
+    if (appointments.length === 0) {
+      return res.json({
+        success: true,
+        hasActiveConsultation: false,
+        consultation: null
+      });
+    }
+
     const appointmentIds = appointments.map(a => a._id);
     
     const consultation = await Consultation.findOne({
@@ -127,6 +155,10 @@ exports.getActiveConsultation = async (req, res) => {
         {
           path: 'doctorId',
           populate: { path: 'userId', select: 'name email' }
+        },
+        {
+          path: 'patientId',
+          populate: { path: 'userId', select: 'name email' }
         }
       ]
     });
@@ -137,6 +169,7 @@ exports.getActiveConsultation = async (req, res) => {
       consultation
     });
   } catch (error) {
+    console.error('Error getting active consultation:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -181,6 +214,7 @@ exports.endConsultation = async (req, res) => {
       consultation
     });
   } catch (error) {
+    console.error('Error ending consultation:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -219,6 +253,7 @@ exports.getConsultation = async (req, res) => {
       consultation
     });
   } catch (error) {
+    console.error('Error getting consultation:', error);
     res.status(500).json({
       success: false,
       message: error.message

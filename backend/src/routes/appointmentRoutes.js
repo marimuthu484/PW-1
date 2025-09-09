@@ -3,8 +3,10 @@ const router = express.Router();
 const {
   createAppointment,
   getAppointment,
+  getAppointments,
   updateAppointmentStatus,
-  cancelAppointment
+  startConsultation,
+  downloadMedicalReport
 } = require('../controllers/appointmentController');
 const { protect } = require('../middleware/authMiddleware');
 const { isPatient, isDoctor } = require('../middleware/roleMiddleware');
@@ -15,11 +17,13 @@ router.use(protect);
 // Patient routes
 router.post('/create', isPatient, createAppointment);
 
-// Shared routes
-router.get('/:id', getAppointment);
-router.delete('/:id/cancel', cancelAppointment);
-
 // Doctor routes
 router.put('/:id/status', isDoctor, updateAppointmentStatus);
+router.post('/start-consultation', isDoctor, startConsultation);
+
+// Shared routes
+router.get('/', getAppointments);
+router.get('/:id', getAppointment);
+router.get('/:appointmentId/medical-report/download', downloadMedicalReport);
 
 module.exports = router;

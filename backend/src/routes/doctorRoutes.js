@@ -4,7 +4,10 @@ const {
   getProfile,
   updateProfile,
   getAppointments,
-  getPatients
+  getPatients,
+  getTimeSlots,
+  updateTimeSlots,
+  getAvailableSlotsForDate
 } = require('../controllers/doctorController');
 const { protect } = require('../middleware/authMiddleware');
 const { isDoctor } = require('../middleware/roleMiddleware');
@@ -16,5 +19,10 @@ router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
 router.get('/appointments', getAppointments);
 router.get('/patients', getPatients);
+router.get('/time-slots', getTimeSlots);
+router.put('/time-slots', updateTimeSlots);
+
+// Public route for getting available slots
+router.get('/available-slots', protect, getAvailableSlotsForDate);
 
 module.exports = router;

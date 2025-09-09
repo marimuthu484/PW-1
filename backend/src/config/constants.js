@@ -6,14 +6,16 @@ module.exports = {
   },
   
   DOCTOR_STATUS: {
-    PENDING: 'pending', 
+    PENDING: 'pending',
     APPROVED: 'approved',
     REJECTED: 'rejected'
   },
   
   APPOINTMENT_STATUS: {
+    PENDING: 'pending',
     SCHEDULED: 'scheduled',
     CONFIRMED: 'confirmed',
+    IN_PROGRESS: 'in-progress',
     COMPLETED: 'completed',
     CANCELLED: 'cancelled'
   },

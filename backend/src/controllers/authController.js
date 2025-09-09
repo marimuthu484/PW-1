@@ -9,6 +9,16 @@ exports.register = async (req, res) => {
   try {
     const { name, email, password, role, ...additionalData } = req.body;
 
+    console.log('Registration attempt:', { name, email, role }); // Debug log
+
+    // Validate required fields
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name, email, and password are required'
+      });
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -28,27 +38,55 @@ exports.register = async (req, res) => {
 
     // Create role-specific profile
     if (role === USER_ROLES.DOCTOR) {
-      const { specialization, qualification, experience, licenseNumber, clinicAddress, phone, consultationFee } = additionalData;
+      const { 
+        specialization, 
+        qualification, 
+        experience, 
+        licenseNumber, 
+        clinicAddress, 
+        phone, 
+        consultationFee 
+      } = additionalData;
       
+      // Validate doctor fields
+      if (!specialization || !qualification || !experience || !licenseNumber || !clinicAddress || !phone || !consultationFee) {
+        // If validation fails, delete the created user
+        await User.findByIdAndDelete(user._id);
+        return res.status(400).json({
+          success: false,
+          message: 'All doctor fields are required'
+        });
+      }
+
       await Doctor.create({
         userId: user._id,
         specialization,
         qualification,
-        experience,
+        experience: parseInt(experience),
         licenseNumber,
         clinicAddress,
         phone,
-        consultationFee
+        consultationFee: parseInt(consultationFee),
+        status: 'pending'
       });
 
-      // Send notification to admin
-      await emailService.sendDoctorRegistrationNotification(user);
-    } else if (role === USER_ROLES.PATIENT || !role) {
+      // Send notification to admin (optional - wrap in try-catch to prevent failure)
+      try {
+        if (process.env.ADMIN_EMAIL) {
+          await emailService.sendDoctorRegistrationNotification(user);
+        }
+      } catch (emailError) {
+        console.error('Email notification failed:', emailError);
+        // Don't fail registration if email fails
+      }
+    } else {
+      // Create patient profile
       await Patient.create({
         userId: user._id,
         phone: additionalData.phone || '',
         dateOfBirth: additionalData.dateOfBirth,
-        gender: additionalData.gender
+        gender: additionalData.gender,
+        medicalReports: []
       });
     }
 
@@ -69,9 +107,10 @@ exports.register = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('Registration error:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message || 'Registration failed'
     });
   }
 };
@@ -80,6 +119,16 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password, userType } = req.body;
+
+    console.log('Login attempt:', { email, userType }); // Debug log
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+    }
 
     // Check if user exists
     const user = await User.findOne({ email }).select('+password');
@@ -110,6 +159,13 @@ exports.login = async (req, res) => {
     // Check if doctor is approved
     if (user.role === USER_ROLES.DOCTOR) {
       const doctor = await Doctor.findOne({ userId: user._id });
+      if (!doctor) {
+        return res.status(500).json({
+          success: false,
+          message: 'Doctor profile not found'
+        });
+      }
+      
       if (doctor.status !== 'approved') {
         return res.status(401).json({
           success: false,
@@ -138,9 +194,10 @@ exports.login = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message || 'Login failed'
     });
   }
 };
@@ -170,10 +227,10 @@ exports.getMe = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('GetMe error:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message || 'Failed to get user data'
     });
   }
 };
-

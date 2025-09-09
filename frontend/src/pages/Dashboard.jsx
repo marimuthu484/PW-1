@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Heart, Activity, FileText, Calendar, Download, Eye, Plus } from 'lucide-react';
-
+import { Heart, Activity, FileText, Calendar, Download, Eye, Trash2, Plus } from 'lucide-react';
+import ConsultationNotification from '../components/patient/ConsultationNotification';
+import AppointmentDetail from '../shared/AppointmentDetail';
+//import AppointmentDetail from '../components/shared/AppointmentDetail';
 import { patientService } from '../services/patientService';
 import { appointmentService } from '../services/appointmentService';
 import { formatters } from '../utils/formatters';
+//import { formatters } from '../utils/formatters';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
-
-import ConsultationNotification from '../components/patient/ConsultationNotification';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('appointments');
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   const healthReports = [
     {
@@ -97,12 +99,28 @@ const Dashboard = () => {
       case 'scheduled':
       case 'confirmed':
         return 'text-blue-600 bg-blue-100';
+      case 'pending':
+        return 'text-yellow-600 bg-yellow-100';
       case 'completed':
         return 'text-green-600 bg-green-100';
       case 'cancelled':
         return 'text-red-600 bg-red-100';
+      case 'in-progress':
+        return 'text-purple-600 bg-purple-100';
       default:
         return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const handleAppointmentClick = async (appointment) => {
+    try {
+      // Fetch full appointment details with chat status
+      const response = await appointmentService.getAppointment(appointment._id);
+      setSelectedAppointment(response.appointment);
+    } catch (error) {
+      console.error('Error fetching appointment details:', error);
+      // If error, still show with basic info
+      setSelectedAppointment(appointment);
     }
   };
 
@@ -221,7 +239,11 @@ const Dashboard = () => {
                 ) : (
                   <div className="space-y-4">
                     {appointments.map((appointment) => (
-                      <div key={appointment._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div 
+                        key={appointment._id} 
+                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => handleAppointmentClick(appointment)}
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
                             <div className="bg-blue-100 p-2 rounded-full">
@@ -229,7 +251,7 @@ const Dashboard = () => {
                             </div>
                             <div>
                               <h3 className="font-semibold text-gray-900">
-                                {appointment.doctorId?.userId?.name}
+                                {appointment.doctorId?.userId?.name || 'Doctor'}
                               </h3>
                               <p className="text-sm text-gray-600">
                                 {appointment.doctorId?.specialization}
@@ -237,6 +259,11 @@ const Dashboard = () => {
                               <p className="text-sm text-gray-600">
                                 {appointment.reason}
                               </p>
+                              {appointment.chatEnabled && (
+                                <p className="text-xs text-blue-600 mt-1">
+                                  💬 Chat available
+                                </p>
+                              )}
                             </div>
                           </div>
                           
@@ -244,14 +271,19 @@ const Dashboard = () => {
                             <p className="font-medium text-gray-900">
                               {formatters.date(appointment.date)}
                             </p>
-                            <p className="text-sm text-gray-600">{appointment.timeSlot}</p>
+                            <p className="text-sm text-gray-600">
+                              {appointment.timeSlot?.startTime} - {appointment.timeSlot?.endTime}
+                            </p>
                             <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-2 ${getStatusColor(appointment.status)}`}>
                               {appointment.status}
                             </span>
-                            {appointment.status === 'scheduled' && (
+                            {appointment.status === 'pending' && (
                               <button
-                                onClick={() => handleCancelAppointment(appointment._id)}
-                                className="mt-2 text-red-600 hover:text-red-700 text-sm font-medium block"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCancelAppointment(appointment._id);
+                                }}
+                                className="mt-2 text-red-600 hover:text-red-700 text-sm font-medium block ml-auto"
                               >
                                 Cancel
                               </button>
@@ -357,8 +389,17 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* ✅ Added Consultation Notification here */}
+      
+      {/* Appointment Detail Modal */}
+      {selectedAppointment && (
+        <AppointmentDetail
+          appointment={selectedAppointment}
+          onClose={() => setSelectedAppointment(null)}
+          userRole="patient"
+        />
+      )}
+      
+      {/* Consultation Notification Component */}
       <ConsultationNotification />
     </div>
   );

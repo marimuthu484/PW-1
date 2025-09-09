@@ -72,14 +72,27 @@ const doctorSchema = new mongoose.Schema({
     default: 0
   },
   availableSlots: [{
-    day: String,
-    startTime: String,
-    endTime: String,
-    isActive: {
-      type: Boolean,
-      default: true
-    }
-  }]
+    dayOfWeek: {
+      type: Number, // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+      required: true
+    },
+    slots: [{
+      startTime: {
+        type: String,
+        required: true
+      },
+      endTime: {
+        type: String,
+        required: true
+      },
+      isActive: {
+        type: Boolean,
+        default: true
+      }
+    }]
+  }],
+  about: String,
+  availableTimings: String
 }, {
   timestamps: true
 });
@@ -88,7 +101,7 @@ const doctorSchema = new mongoose.Schema({
 doctorSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'userId',
-    select: 'name email'
+    select: 'name email avatar'
   });
   next();
 });
